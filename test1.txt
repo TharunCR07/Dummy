@@ -1,1 +1,355 @@
-Create test1.txt file
+BrokerOnboard - Retail Brokerage Account Opening 
+& KYC Orchestration System
+1. Introduction
+BrokerOnboard is a web-based Retail Brokerage Account Opening & KYC Orchestration
+platform for broker-dealers and investment platforms to streamline prospect onboarding, 
+e-KYC/KYB, risk profiling/suitability, product consents, agreements/e-sign, in-person 
+verification (ref), nominee & FATCA/CRS, and account approval with trading segment 
+activation (e.g., equity/cash, F&O, currency, commodities; margin facilities).
+It provides maker–checker workflows, configurable rules, audit-ready trails, and integrates 
+with downstream back-office / depository / exchange gateways (Phase-1 as internal 
+references).
+Architecture: REST API-based backend with Angular/React frontend; compatible with Java 
+(Spring Boot) or .NET (ASP.NET Core).
+Actors / Users
+• Investor / Applicant: Initiates application, submits KYC docs, completes 
+declarations and e-sign.
+• Sales/Partner Agent: Assisted onboarding, referral tracking, status follow-ups.
+• KYC Verifier / Ops Maker: Verifies documents, video IPV (ref), addresses 
+pendencies.
+• Compliance Checker: Reviews AML/PEP red flags, approves/rejects applications.
+• Account Admin: Activates trading segments, depository IDs, agreements & 
+consents.
+• System Admin: Configures workflows, rules, document templates, and reports.
+2. Module Overview
+2.1 Identity & Access Management
+Authentication, RBAC, audit logs.
+2.2 Prospect Creation & Application Intake
+Lead/referral capture, application start, channel attribution.
+2.3 e-KYC / KYB & Document Management
+Document capture, OCR placeholders, verification, IPV/video-IPV (ref).
+2.4 AML/PEP Screening & Risk Checks
+Sanctions/PEP/adverse media checks (ref), manual review queues.
+2.5 Investor Profile, FATCA/CRS, Nominee & Bank Linkage
+Investor demographics, tax residency, nominee(s), bank validation references.
+2.6 Risk Profiling & Suitability
+Questionnaire-based scoring, suitability class, product permissions.
+2.7 Agreements, Disclosures & e-Sign
+Digital agreements, consent capture, e-sign references.
+2.8 Account Review, Approval & Segment Activation
+Maker–checker, compliance approvals, trading segment toggles.
+2.9 Depository/Back-Office References
+Client master export, DP/BOID references, welcome kit references.
+2.10 Reporting & Dashboards
+Onboarding funnel, TAT, drop-off points, approval ratios.
+2.11 Notifications & Alerts
+Pendencies, approvals, e-sign reminders, AML escalations.
+3. Architecture Overview
+• Frontend: Angular or React
+• Backend: REST API microservices (Onboarding, KYC, AML, Risk, eSign, Approvals, 
+Reports)
+• Database: Relational DB (MySQL/PostgreSQL/SQL Server)
+• Phase-1 Integrations: All external verifications, depository, payment rails simulated 
+as references
+4. Module-Wise Design
+4.1 Identity & Access Management Module
+Features:
+• Login, multi-role RBAC (Applicant/Agent/Ops/Compliance/Admin), session 
+control, immutable audit
+Entities:
+• User
+o UserID
+o Name
+o Role (Applicant/Agent/Ops/Compliance/Admin)
+o Email
+o Phone
+o Status (Active/Locked/Disabled)
+• AuditLog
+o AuditID
+o UserID
+o Action
+o Resource
+o Timestamp
+o Metadata
+4.2 Prospect Creation & Application Intake Module
+Features:
+• Lead capture, referral/partner code, application start, channel attribution, 
+progress autosave
+Entities:
+• Prospect
+o ProspectID
+o Name
+o Email
+o Phone
+o ReferralCode
+o Channel (Direct/Partner/Branch)
+o CreatedDate
+o Status (New/Converted/Dropped)
+• Application
+o ApplicationID
+o ProspectID
+o ApplicantType (Individual/Minor/NRI/HUF/Corporate)
+o StartDate
+o Status (Draft/Submitted/UnderReview/Approved/Rejected/Withdrawn)
+4.3 e-KYC / KYB & Document Management Module
+Features:
+• Capture identity/address/bank proofs; liveness/video IPV (ref); OCR placeholder; 
+manual verification; address match
+Entities:
+• KYCRecord
+o KYCID
+o ApplicationID
+o KYCMode (eKYC/Offline/VideoIPV)
+o VerificationStatus (Pending/Verified/Rejected)
+o VerifiedDate
+o Notes
+• Document
+o DocumentID
+o ApplicationID
+o DocType (POI/POA/PAN/BankProof/IncomeProof/IPV)
+o FileURI
+o UploadedDate
+o VerificationStatus (Pending/Verified/Rejected)
+• AddressCheck
+o AddressCheckID
+o ApplicationID
+o AddressJSON
+o MatchResult (Exact/Partial/NoMatch)
+o CheckedDate
+4.4 AML/PEP Screening & Risk Checks Module
+Features:
+• Sanctions/PEP checks (ref), adverse media flags, manual review workflows
+Entities:
+• AMLCheck
+o AMLID
+o ApplicationID
+o CheckType (Sanctions/PEP/AdverseMedia)
+o Result (Clear/Match/Review)
+o CheckedDate
+• AMLEscalation
+o EscalationID
+o ApplicationID
+o Severity (Low/Medium/High)
+o AssignedTo
+o Decision (Clear/Reject/RequestInfo)
+o DecisionDate
+o Notes
+4.5 Investor Profile, FATCA/CRS, Nominee & Bank Linkage Module
+Features:
+• Investor demographics; FATCA/CRS; nominee(s)/guardian; bank account linkage 
+(ref micro-deposits)
+Entities:
+• InvestorProfile
+o InvestorID
+o ApplicationID
+o DOB
+o Gender
+o MaritalStatus
+o Occupation
+o AnnualIncomeBand
+o PoliticallyExposed (Yes/No)
+o ResidentialStatus (Resident/NRI)
+o Status
+• FATCA
+o FATCAID
+o ApplicationID
+o TaxResidencyJSON
+o TINsJSON
+o DeclarationsJSON
+o SubmittedDate
+• Nominee
+o NomineeID
+o ApplicationID
+o Name
+o Relationship
+o SharePct
+o GuardianName
+o Status
+• BankLink
+o BankLinkID
+o ApplicationID
+o AccountNumberMasked
+o IFSC_IBAN
+o VerificationMethod (MicroDeposit/API/Manual)
+o VerificationStatus (Pending/Verified/Failed)
+o VerifiedDate
+4.6 Risk Profiling & Suitability Module
+Features:
+• Questionnaire; score & risk class; product permissions 
+(Equity/Derivatives/Currency/Commodities/MF/Bonds)
+Entities:
+• RiskProfile
+o RiskID
+o ApplicationID
+o QuestionnaireJSON
+o Score
+o RiskClass (Conservative/Moderate/Aggressive)
+o AssessedDate
+• ProductPermission
+o PermissionID
+o ApplicationID
+o Product (Equity/FO/Currency/Commodity/MF/Bonds)
+o PermissionStatus (Allowed/Restricted)
+o Reason
+4.7 Agreements, Disclosures & e-Sign Module
+Features:
+• Agreements (KRA/disclosures/T&C/POA/rights & obligations); consent capture; 
+e-sign references; time-stamped proofs
+Entities:
+• Agreement
+o AgreementID
+o ApplicationID
+o AgreementType 
+(AccountTnC/POA/Rights&Obligations/RiskDisclosure/KRA)
+o Version
+o ConsentFlag (Yes/No)
+o ConsentDate
+o ESignStatus (Pending/Completed/Failed)
+o ESignRef
+• Consent
+o ConsentID
+o ApplicationID
+o ConsentType (Communication/Research/TPP/Sharing)
+o Granted (Yes/No)
+o GrantedDate
+4.8 Account Review, Approval & Segment Activation Module
+Features:
+• Maker–checker workflow; compliance approval; trading segment activation; 
+margin products toggle
+Entities:
+• ReviewTask
+o TaskID
+o ApplicationID
+o TaskType 
+(KYCReview/AMLReview/ComplianceReview/VideoIPV/BankVerify)
+o AssignedTo
+o Status (Open/InProgress/Completed)
+o CompletedDate
+o Notes
+• Approval
+o ApprovalID
+o ApplicationID
+o Decision (Approve/Reject/Query)
+o DecisionBy
+o DecisionDate
+o Remarks
+• SegmentActivation
+o SegmentID
+o ApplicationID
+o Segment (Equity/Cash, FO, Currency, Commodity, MF, Bonds)
+o ActivationStatus (Active/Inactive)
+o ActivatedDate
+4.9 Depository/Back-Office References Module
+Features:
+• Client master export, depository client mapping, BO/DP references, welcome kit 
+references
+Entities:
+• DepositoryRef
+o DPRefID
+o ApplicationID
+o DPID
+o BOID
+o MappingDate
+o Status
+• BackOfficeExport
+o ExportID
+o ApplicationID
+o PayloadJSON
+o ExportDate
+o Status (Generated/Posted/Failed)
+4.10 Reporting & Dashboards Module
+Features:
+• Funnel analytics (start→submit→e-sign→approved), TAT, drop-offs, rejection 
+reasons
+Entities:
+• OnboardReport
+o ReportID
+o Scope (Channel/Period/Product)
+o Metrics (Starts, Submissions, ESignRate, Approvals, TAT, DropOffStage)
+o GeneratedDate
+4.11 Notifications & Alerts Module
+Features:
+• In-app notifications for pendencies, e-sign reminders, AML escalations, approvals
+Entities:
+• Notification
+o NotificationID
+o UserID
+o Message
+o Category (Pendency/ESign/AML/Approval)
+o Status (Unread/Read/Dismissed)
+o CreatedDate
+5. Deployment Strategy
+• Local: Angular/React + Spring Boot/.NET Core + local RDBMS
+• Production: Cloud/on-prem, API gateway/WAF, stateless microservices, job 
+schedulers (ESign follow-up, AML refresh, funnel pack), centralized logs & metrics
+6. Database Design
+Tables:
+• User(UserID, Name, Role, Email, Phone, Status)
+• AuditLog(AuditID, UserID, Action, Resource, Timestamp, Metadata)
+• Prospect(ProspectID, Name, Email, Phone, ReferralCode, Channel, 
+CreatedDate, Status)
+• Application(ApplicationID, ProspectID, ApplicantType, StartDate, Status)
+• KYCRecord(KYCID, ApplicationID, KYCMode, VerificationStatus, VerifiedDate, 
+Notes)
+• Document(DocumentID, ApplicationID, DocType, FileURI, UploadedDate, 
+VerificationStatus)
+• AddressCheck(AddressCheckID, ApplicationID, AddressJSON, MatchResult, 
+CheckedDate)
+• AMLCheck(AMLID, ApplicationID, CheckType, Result, CheckedDate)
+• AMLEscalation(EscalationID, ApplicationID, Severity, AssignedTo, Decision, 
+DecisionDate, Notes)
+• InvestorProfile(InvestorID, ApplicationID, DOB, Gender, MaritalStatus, 
+Occupation, AnnualIncomeBand, PoliticallyExposed, ResidentialStatus, Status)
+• FATCA(FATCAID, ApplicationID, TaxResidencyJSON, TINsJSON, 
+DeclarationsJSON, SubmittedDate)
+• Nominee(NomineeID, ApplicationID, Name, Relationship, SharePct, 
+GuardianName, Status)
+• BankLink(BankLinkID, ApplicationID, AccountNumberMasked, IFSC_IBAN, 
+VerificationMethod, VerificationStatus, VerifiedDate)
+• RiskProfile(RiskID, ApplicationID, QuestionnaireJSON, Score, RiskClass, 
+AssessedDate)
+• ProductPermission(PermissionID, ApplicationID, Product, PermissionStatus, 
+Reason)
+• Agreement(AgreementID, ApplicationID, AgreementType, Version, ConsentFlag, 
+ConsentDate, ESignStatus, ESignRef)
+• Consent(ConsentID, ApplicationID, ConsentType, Granted, GrantedDate)
+• ReviewTask(TaskID, ApplicationID, TaskType, AssignedTo, Status, 
+CompletedDate, Notes)
+• Approval(ApprovalID, ApplicationID, Decision, DecisionBy, DecisionDate, 
+Remarks)
+• SegmentActivation(SegmentID, ApplicationID, Segment, ActivationStatus, 
+ActivatedDate)
+• DepositoryRef(DPRefID, ApplicationID, DPID, BOID, MappingDate, Status)
+• BackOfficeExport(ExportID, ApplicationID, PayloadJSON, ExportDate, Status)
+• OnboardReport(ReportID, Scope, Metrics, GeneratedDate)
+• Notification(NotificationID, UserID, Message, Category, Status, CreatedDate)
+7. User Interface Design
+• Applicant Portal: Stepper flow (profile → KYC → bank link → FATCA/CRS → risk 
+profile → e-sign → submit), pendency tracker.
+• Agent Console: Prospects, assisted applications, funnel status, follow-ups.
+• Ops/KYC Workbench: Document verification queue, IPV/video references, 
+address/bank checks.
+• Compliance Console: AML results, escalations, decisions, audit trails.
+• Approvals Desk: Maker–checker tasks, segment activation, finalize approvals.
+• Admin Panel: Rules, forms, agreements, e-sign templates, users/roles.
+• Reports Dashboard: Funnel, TAT, drop-offs, approval/rejection ratios by channel.
+8. Non-Functional Requirements
+• Performance: Support 50,000 concurrent users during campaign spikes; fast step 
+transitions.
+• Security: PII protection, encryption (at rest/in transit), RBAC, immutable audit, 
+consent capture.
+• Scalability: Horizontal scaling for queues (KYC verify/AML checks/e-sign 
+reminders).
+• Availability: 99.9% uptime; graceful degradation for analytics/report batches.
+• Maintainability: Modular microservices; config-driven 
+questionnaires/rules/agreements.
+• Observability: Centralized logs; KPIs (funnel progression, TAT, drop-off rates, 
+approval ratios); alerting.
+9. Assumptions & Constraints
+• Phase-1 excludes live integrations to KRA/KYC registries, AML bureaus, bank 
+account verification gateways, depository/exchanges—stored as references.
+• e-sign is reference only (captures status and external reference).
+• No payment gateway or fund settlement in Phase-1.
+• Notifications are in-app only.
+• Fully implementable using Java Spring Boot/ASP.NET Core + Angular/React with 
+a relational database.this is out project i need to complete the 2nd module can you help me in it to doActually this is our Project we are 8 members in a team and we juz completed the backend part my assigning 2 members to an single module and finished sooo as my part i completed the 4th module and in that the AML CHECK alone i did can you explain me this project i will give you the entity diagram and the AML check controller Enums Entity Service Repository files

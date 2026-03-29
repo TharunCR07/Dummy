@@ -1,0 +1,224 @@
+package com.broker.onboard.Module_4.Controller;
+
+import com.broker.onboard.Module_4.Entity.AmlCheck;
+import com.broker.onboard.Module_4.Service.AmlCheckService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/aml")
+public class AmlCheckController {
+
+    @Autowired
+    private AmlCheckService amlCheckService;
+
+    // CREATE
+    @PostMapping("/create")
+    public AmlCheck createAmlCheck(@RequestBody AmlCheck amlCheck) {
+        return amlCheckService.createAmlCheck(amlCheck);
+    }
+
+    // READ by ID
+    @GetMapping("/{id}")
+    public AmlCheck getAmlCheck(@PathVariable Long id) {
+        return amlCheckService.getAmlCheckById(id);
+    }
+
+    // READ checks by ApplicationID
+    @GetMapping("/application/{applicationId}")
+    public List<AmlCheck> getByApplication(@PathVariable Long applicationId) {
+        return amlCheckService.getChecksByApplicationId(applicationId);
+    }
+
+    // READ all
+    @GetMapping("/all")
+    public List<AmlCheck> getAllChecks() {
+        return amlCheckService.getAllChecks();
+    }
+
+    // UPDATE (PUT)
+    @PutMapping("/update/{id}")
+    public AmlCheck updateAmlCheck(@PathVariable Long id, @RequestBody AmlCheck newData) {
+
+        AmlCheck existing = amlCheckService.getAmlCheckById(id);
+
+        if (existing == null) {
+            return null; // or throw exception
+        }
+
+        existing.setApplicationId(newData.getApplicationId());
+        existing.setCheckType(newData.getCheckType());
+        existing.setResult(newData.getResult());
+        existing.setCheckedDate(newData.getCheckedDate());
+
+        return amlCheckService.createAmlCheck(existing);
+    }
+
+    // DELETE
+    @DeleteMapping("/delete/{id}")
+    public String deleteAmlCheck(@PathVariable Long id) {
+        AmlCheck existing = amlCheckService.getAmlCheckById(id);
+
+        if (existing == null) {
+            return "AML Record Not Found!";
+        }
+
+        amlCheckService.deleteById(id);
+        return "AML Check deleted successfully!";
+    }
+}
+
+
+
+
+
+
+package com.broker.onboard.Module_4.Entity;
+
+import com.broker.onboard.Module_4.Enums.AmlEnums.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.*;
+
+import lombok.Data;
+
+import java.time.LocalDateTime;
+
+@Data
+@Entity
+@Table(name = "aml_check")
+public class AmlCheck {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "AMLID")
+    private Long id;
+
+    @Column(name = "ApplicationID", nullable = false)
+    private Long applicationId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "CheckType", nullable = false)
+    private AmlCheckType checkType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "Result", nullable = false)
+    private AmlResult result;
+
+    @Column(name = "CheckedDate", nullable = false)
+    private LocalDateTime checkedDate;
+}
+
+
+
+package com.broker.onboard.Module_4.Enums;
+
+
+public final class AmlEnums {
+    private AmlEnums() {}
+
+    /** The type of AML check performed for an application. */
+    public enum AmlCheckType { Sanctions, PEP, AdverseMedia }
+
+    /** The outcome of an AML check. */
+    public enum AmlResult { Clear, Match, Review }
+
+    /** The severity assigned when an AML escalation is created. */
+    public enum EscalationSeverity { Low, Medium, High }
+
+    /** The final decision taken by compliance on an AML escalation. */
+    public enum EscalationDecision { Clear, Reject, RequestInfo }
+
+}
+
+
+
+
+
+package com.broker.onboard.Module_4.Repository;
+
+import com.broker.onboard.Module_4.Entity.AmlCheck;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface AmlCheckRepository extends JpaRepository<AmlCheck, Long> {
+
+    List<AmlCheck> findByApplicationId(Long applicationId);
+}
+
+
+
+
+package com.broker.onboard.Module_4.Service.impl;
+
+import com.broker.onboard.Module_4.Entity.AmlCheck;
+import com.broker.onboard.Module_4.Repository.AmlCheckRepository;
+import com.broker.onboard.Module_4.Service.AmlCheckService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class AmlCheckServiceImpl implements AmlCheckService {
+
+    @Autowired
+    private AmlCheckRepository amlCheckRepository;
+
+    @Override
+    public AmlCheck createAmlCheck(AmlCheck amlCheck) {
+        return amlCheckRepository.save(amlCheck);
+    }
+
+    @Override
+    public AmlCheck getAmlCheckById(Long id) {
+        return amlCheckRepository.findById(id).orElse(null);
+    }
+
+    @Override
+    public List<AmlCheck> getChecksByApplicationId(Long applicationId) {
+        return amlCheckRepository.findByApplicationId(applicationId);
+    }
+
+    @Override
+    public List<AmlCheck> getAllChecks() {
+        return amlCheckRepository.findAll();
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        amlCheckRepository.deleteById(id);
+    }
+}
+
+
+
+
+package com.broker.onboard.Module_4.Service;
+
+import com.broker.onboard.Module_4.Entity.AmlCheck;
+
+import java.util.List;
+
+public interface AmlCheckService {
+
+    AmlCheck createAmlCheck(AmlCheck amlCheck);
+
+    AmlCheck getAmlCheckById(Long id);
+
+    List<AmlCheck> getChecksByApplicationId(Long applicationId);
+
+    List<AmlCheck> getAllChecks();
+
+    void deleteById(Long id);
+}
+
+
+
+
+Can you explain this code like the interviewer ask some qusetion nah i should answer it

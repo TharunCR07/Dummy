@@ -220,5 +220,3 @@ public interface AmlCheckService {
 
 
 
-
-Can you explain this code like the interviewer ask some qusetion nah i should answer it
